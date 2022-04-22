@@ -120,6 +120,7 @@ defmodule QMI.Codec.NetworkAccess do
   @type set_system_selection_preference_opt() ::
           {:mode_preference, [radio_interface()]}
           | {:change_duration, preference_change_duration()}
+          | {:roaming_preference, roaming_preference()}
 
   @doc """
   Make the `QMI.request()` for getting signal strength
@@ -416,6 +417,11 @@ defmodule QMI.Codec.NetworkAccess do
   defp parse_network_selection_preference(0x00), do: :automatic
   defp parse_network_selection_preference(0x01), do: :manual
 
+  defp roaming_preference(:off), do: 0x01
+  defp roaming_preference(:not_off), do: 0x02
+  defp roaming_preference(:not_flashing), do: 0x03
+  defp roaming_preference(:any), do: 0xFF
+
   @doc """
   Generate the `QMI.request()` for setting system selection preferences
   """
@@ -465,6 +471,12 @@ defmodule QMI.Codec.NetworkAccess do
 
     tlv = <<0x11, 0x02::little-16, radio_techs_mask::little-16>>
 
+    do_make_tlvs(rest, tlvs ++ [tlv], bytes + 5)
+  end
+
+  defp do_make_tlvs([{:roaming_preference, roaming_preference} | rest], tlvs, bytes) do
+    roaming_byte = roaming_preference(roaming_preference)
+    tlv = <<0x14, 0x02::little-16, roaming_byte::little-16>>
     do_make_tlvs(rest, tlvs ++ [tlv], bytes + 5)
   end
 
