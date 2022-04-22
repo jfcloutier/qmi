@@ -427,6 +427,7 @@ defmodule QMI.Codec.NetworkAccess do
   """
   @spec set_system_selection_preference([set_system_selection_preference_opt()]) :: QMI.request()
   def set_system_selection_preference(opts \\ []) do
+    Logger.warn("[QMI] set_system_selection_preference #{inspect(opts)}")
     {tlvs, size} = make_tlvs(opts)
     payload = [<<@set_system_selection_preference::little-16, size::little-16>>, tlvs]
 
@@ -476,6 +477,11 @@ defmodule QMI.Codec.NetworkAccess do
 
   defp do_make_tlvs([{:roaming_preference, roaming_preference} | rest], tlvs, bytes) do
     roaming_byte = roaming_preference(roaming_preference)
+
+    Logger.warn(
+      "[QMI] do_make_tlvs #{inspect({:roaming_preference, roaming_preference})} -> #{inspect(roaming_byte)}"
+    )
+
     tlv = <<0x14, 0x02::little-16, roaming_byte::little-16>>
     do_make_tlvs(rest, tlvs ++ [tlv], bytes + 5)
   end
